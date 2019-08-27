@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.3" />
+<title>sls_tools.param_store.param_store API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>sls_tools.param_store.param_store</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">import os
+import boto3
+import logging
+from enum import Enum
+from .param_store_result import ParamStoreResult
+
+
+class ParamStore:
+    &#34;&#34;&#34;Provides access to key/values (variables) stored locally on the OS or AWS SSM.
+
+    examples:
+
+        # Set and get a value in SSM:
+        ParamStore.set(&#39;MY_VAR&#39;, &#39;123&#39;)
+        my_var = ParamStore.get(&#39;MY_VAR&#39;).value
+        &gt;&gt; &#39;123&#39;
+
+        # Set and get a value from the OS:
+        ParamStore.set(&#39;MY_VAR&#39;, &#39;123&#39;, store=ParamStore.Stores.OS)
+        my_var = ParamStore.get(&#39;MY_VAR&#39;).value
+        &gt;&gt; &#39;123&#39;
+        # Or explicitly:
+        my_var = ParamStore.get(&#39;MY_VAR&#39;, store=ParamStore.Stores.OS).value
+        &gt;&gt; &#39;123&#39;
+
+        # Set and get a value in SSM and convert it to a list:
+        ParamStore.set(&#39;MY_VAR&#39;, &#39;one,two,three&#39;)
+        my_var = ParamStore.get(&#39;MY_VAR&#39;).to_list()
+        &gt;&gt; [&#39;one&#39;, &#39;two&#39;, &#39;three&#39;]
+    &#34;&#34;&#34;
+
+    class Stores(Enum):
+        &#34;&#34;&#34;Enum for the available Key/Value stores.
+
+        Supported options are: OS, SSM, AUTO
+
+        &#34;AUTO&#34; is a reserved keyword that can be passed to each method to delegate
+        the choice to each individual method.
+        &#34;&#34;&#34;
+        OS = &#39;os&#39;
+        SSM = &#39;ssm&#39;
+        AUTO = &#39;auto&#39;
+
+    @classmethod
+    def set(cls, key, value, store=Stores.SSM):
+        &#34;&#34;&#34;Sets a key/value pair.
+
+        Args:
+            key: The key to set.
+            value: The value to set.
+            store: Where to set the value. Defaults to Stores.SSM.
+
+        Returns:
+            True if successfully set otherwise False.
+        &#34;&#34;&#34;
+        result = False
+
+        # Set the value in the local environment.
+        if store in [cls.Stores.OS, cls.Stores.AUTO]:
+            result = cls._set_in_os(key, value)
+
+        # Set the value in SSM.
+        if store in [cls.Stores.SSM, cls.Stores.AUTO]:
+            result = cls._set_in_ssm(key, value) is not None
+
+        return result
+
+    @classmethod
+    def get(cls, key, default=None, store=Stores.AUTO):
+        &#34;&#34;&#34;Gets the value for a key.
+
+        Will return the value from the OS if its set otherwise it will try to get the value from SSM.
+        
+        Args:
+            key: The key for the value to get.
+            default: The value to return if the key value is None.
+            store: Where to get the value from. Defaults to Stores.AUTO.
+
+        Returns:
+            ParamStoreResult
+        &#34;&#34;&#34;
+        # Try to get the value from the local environment.
+        if store in [cls.Stores.OS, cls.Stores.AUTO]:
+            result = cls._get_from_os(key)
+            if result is not None:
+                return ParamStoreResult(key, result)
+
+        # Try to get the value from SSM.
+        if store in [cls.Stores.SSM, cls.Stores.AUTO]:
+            result = cls._get_from_ssm(key)
+            if result is not None:
+                return ParamStoreResult(key, result)
+
+        return ParamStoreResult(key, default)
+
+    @classmethod
+    def delete(cls, key, store=Stores.AUTO):
+        &#34;&#34;&#34;Deletes a key/value.
+
+        Args:
+            key: The key to delete.
+            store: Where to delete from. Defaults to Stores.AUTO.
+
+        Returns:
+            True if successfully deleted otherwise False.
+        &#34;&#34;&#34;
+        result = False
+
+        # Delete the value from the local environment.
+        if store in [cls.Stores.OS, cls.Stores.AUTO]:
+            result = cls._delete_from_os(key)
+
+        # Delete the value from SSM.
+        if store in [cls.Stores.SSM, cls.Stores.AUTO]:
+            result = cls._delete_from_ssm(key) is not None
+
+        return result
+
+    @classmethod
+    def _get_from_os(cls, key):
+        &#34;&#34;&#34;Gets a value from the OS environment variables.
+
+        Args:
+            key: The key for the value to get.
+
+        Returns:
+            The key value or None.
+        &#34;&#34;&#34;
+        return os.environ.get(key)
+
+    @classmethod
+    def _set_in_os(cls, key, value):
+        &#34;&#34;&#34;Sets a key/value in the OS environment.
+
+        Args:
+            key: The key to set.
+            value: The value to set.
+
+        Returns:
+            True
+        &#34;&#34;&#34;
+        os.environ[key] = value
+        return True
+
+    @classmethod
+    def _delete_from_os(cls, key):
+        &#34;&#34;&#34;Deletes the key from the OS environment.
+
+        Args:
+            key: The key to delete.
+
+        Returns:
+            True
+        &#34;&#34;&#34;
+        if key in os.environ.keys():
+            del os.environ[key]
+
+        return True
+
+    @classmethod
+    def _get_from_ssm(cls, key):
+        &#34;&#34;&#34;Gets a value from SSM.
+
+        Args:
+            key: The key for the value to get.
+
+        Returns:
+            The key value or None.
+        &#34;&#34;&#34;
+        ssm_key = cls._build_ssm_key(key)
+        result = None
+        client = cls._get_ssm_client()
+        try:
+            get_response = client.get_parameter(Name=ssm_key, WithDecryption=True)
+            result = get_response.get(&#39;Parameter&#39;).get(&#39;Value&#39;)
+        except client.exceptions.ParameterNotFound:
+            logging.exception(&#39;SSM Parameter Not Found: {0}&#39;.format(ssm_key))
+
+        return result
+
+    @classmethod
+    def _set_in_ssm(cls, key, value, type=&#39;SecureString&#39;):
+        &#34;&#34;&#34;Sets a key/value pair in SSM.
+
+        Args:
+            key: The key to set.
+            value: The value to set.
+            type: The SSM parameter type. Defaults to SecureString.
+
+        Returns:
+            True if successful otherwise False.
+        &#34;&#34;&#34;
+        ssm_key = cls._build_ssm_key(key)
+        try:
+            cls._get_ssm_client().put_parameter(Name=ssm_key, Value=value, Type=type, Overwrite=True)
+            return True
+        except Exception as ex:
+            logging.exception(&#39;SSM Error: {0}&#39;.format(ex))
+        return False
+
+    @classmethod
+    def _delete_from_ssm(cls, key):
+        &#34;&#34;&#34;Deletes a key in SSM.
+
+        Args:
+            key: The key to delete.
+
+        Returns:
+            True if successful otherwise False.
+        &#34;&#34;&#34;
+        ssm_key = cls._build_ssm_key(key)
+        try:
+            cls._get_ssm_client().delete_parameter(Name=ssm_key)
+            return True
+        except Exception as ex:
+            logging.exception(&#39;SSM Error: {0}&#39;.format(ex))
+        return False
+
+    @classmethod
+    def _build_ssm_key(cls, key):
+        &#34;&#34;&#34;Builds an SSM key.
+
+        The format is &#34;service_name/service_stage/key&#34;.
+
+        Args:
+            key: The key to build a fully qualified key for.
+
+        Returns:
+            The fully qualified key string.
+        &#34;&#34;&#34;
+        service_name = cls.get(&#39;SERVICE_NAME&#39;, store=cls.Stores.OS).value
+        service_stage = cls.get(&#39;SERVICE_STAGE&#39;, store=cls.Stores.OS).value
+
+        if not service_name:
+            raise ValueError(&#39;Environment variable not set: SERVICE_NAME&#39;)
+
+        if not service_stage:
+            raise ValueError(&#39;Environment variable not set: SERVICE_STAGE&#39;)
+
+        return &#39;/{0}/{1}/{2}&#39;.format(service_name, service_stage, key)
+
+    # Cached instance of the SSM client.
+    _ssm_client = None
+
+    @classmethod
+    def _get_ssm_client(cls):
+        &#34;&#34;&#34;Gets an SSM boto3 client.
+
+        Returns:
+            SSM client or None.
+        &#34;&#34;&#34;
+        try:
+            if not cls._ssm_client:
+                cls._ssm_client = boto3.client(&#39;ssm&#39;)
+            return cls._ssm_client
+        except Exception as ex:
+            logging.exception(&#39;SSM Error: {0}&#39;.format(ex))
+        return None</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="sls_tools.param_store.param_store.ParamStore"><code class="flex name class">
+<span>class <span class="ident">ParamStore</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Provides access to key/values (variables) stored locally on the OS or AWS SSM.</p>
+<p>examples:</p>
+<pre><code># Set and get a value in SSM:
+ParamStore.set('MY_VAR', '123')
+my_var = ParamStore.get('MY_VAR').value
+&gt;&gt; '123'
+
+# Set and get a value from the OS:
+ParamStore.set('MY_VAR', '123', store=ParamStore.Stores.OS)
+my_var = ParamStore.get('MY_VAR').value
+&gt;&gt; '123'
+# Or explicitly:
+my_var = ParamStore.get('MY_VAR', store=ParamStore.Stores.OS).value
+&gt;&gt; '123'
+
+# Set and get a value in SSM and convert it to a list:
+ParamStore.set('MY_VAR', 'one,two,three')
+my_var = ParamStore.get('MY_VAR').to_list()
+&gt;&gt; ['one', 'two', 'three']
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class ParamStore:
+    &#34;&#34;&#34;Provides access to key/values (variables) stored locally on the OS or AWS SSM.
+
+    examples:
+
+        # Set and get a value in SSM:
+        ParamStore.set(&#39;MY_VAR&#39;, &#39;123&#39;)
+        my_var = ParamStore.get(&#39;MY_VAR&#39;).value
+        &gt;&gt; &#39;123&#39;
+
+        # Set and get a value from the OS:
+        ParamStore.set(&#39;MY_VAR&#39;, &#39;123&#39;, store=ParamStore.Stores.OS)
+        my_var = ParamStore.get(&#39;MY_VAR&#39;).value
+        &gt;&gt; &#39;123&#39;
+        # Or explicitly:
+        my_var = ParamStore.get(&#39;MY_VAR&#39;, store=ParamStore.Stores.OS).value
+        &gt;&gt; &#39;123&#39;
+
+        # Set and get a value in SSM and convert it to a list:
+        ParamStore.set(&#39;MY_VAR&#39;, &#39;one,two,three&#39;)
+        my_var = ParamStore.get(&#39;MY_VAR&#39;).to_list()
+        &gt;&gt; [&#39;one&#39;, &#39;two&#39;, &#39;three&#39;]
+    &#34;&#34;&#34;
+
+    class Stores(Enum):
+        &#34;&#34;&#34;Enum for the available Key/Value stores.
+
+        Supported options are: OS, SSM, AUTO
+
+        &#34;AUTO&#34; is a reserved keyword that can be passed to each method to delegate
+        the choice to each individual method.
+        &#34;&#34;&#34;
+        OS = &#39;os&#39;
+        SSM = &#39;ssm&#39;
+        AUTO = &#39;auto&#39;
+
+    @classmethod
+    def set(cls, key, value, store=Stores.SSM):
+        &#34;&#34;&#34;Sets a key/value pair.
+
+        Args:
+            key: The key to set.
+            value: The value to set.
+            store: Where to set the value. Defaults to Stores.SSM.
+
+        Returns:
+            True if successfully set otherwise False.
+        &#34;&#34;&#34;
+        result = False
+
+        # Set the value in the local environment.
+        if store in [cls.Stores.OS, cls.Stores.AUTO]:
+            result = cls._set_in_os(key, value)
+
+        # Set the value in SSM.
+        if store in [cls.Stores.SSM, cls.Stores.AUTO]:
+            result = cls._set_in_ssm(key, value) is not None
+
+        return result
+
+    @classmethod
+    def get(cls, key, default=None, store=Stores.AUTO):
+        &#34;&#34;&#34;Gets the value for a key.
+
+        Will return the value from the OS if its set otherwise it will try to get the value from SSM.
+        
+        Args:
+            key: The key for the value to get.
+            default: The value to return if the key value is None.
+            store: Where to get the value from. Defaults to Stores.AUTO.
+
+        Returns:
+            ParamStoreResult
+        &#34;&#34;&#34;
+        # Try to get the value from the local environment.
+        if store in [cls.Stores.OS, cls.Stores.AUTO]:
+            result = cls._get_from_os(key)
+            if result is not None:
+                return ParamStoreResult(key, result)
+
+        # Try to get the value from SSM.
+        if store in [cls.Stores.SSM, cls.Stores.AUTO]:
+            result = cls._get_from_ssm(key)
+            if result is not None:
+                return ParamStoreResult(key, result)
+
+        return ParamStoreResult(key, default)
+
+    @classmethod
+    def delete(cls, key, store=Stores.AUTO):
+        &#34;&#34;&#34;Deletes a key/value.
+
+        Args:
+            key: The key to delete.
+            store: Where to delete from. Defaults to Stores.AUTO.
+
+        Returns:
+            True if successfully deleted otherwise False.
+        &#34;&#34;&#34;
+        result = False
+
+        # Delete the value from the local environment.
+        if store in [cls.Stores.OS, cls.Stores.AUTO]:
+            result = cls._delete_from_os(key)
+
+        # Delete the value from SSM.
+        if store in [cls.Stores.SSM, cls.Stores.AUTO]:
+            result = cls._delete_from_ssm(key) is not None
+
+        return result
+
+    @classmethod
+    def _get_from_os(cls, key):
+        &#34;&#34;&#34;Gets a value from the OS environment variables.
+
+        Args:
+            key: The key for the value to get.
+
+        Returns:
+            The key value or None.
+        &#34;&#34;&#34;
+        return os.environ.get(key)
+
+    @classmethod
+    def _set_in_os(cls, key, value):
+        &#34;&#34;&#34;Sets a key/value in the OS environment.
+
+        Args:
+            key: The key to set.
+            value: The value to set.
+
+        Returns:
+            True
+        &#34;&#34;&#34;
+        os.environ[key] = value
+        return True
+
+    @classmethod
+    def _delete_from_os(cls, key):
+        &#34;&#34;&#34;Deletes the key from the OS environment.
+
+        Args:
+            key: The key to delete.
+
+        Returns:
+            True
+        &#34;&#34;&#34;
+        if key in os.environ.keys():
+            del os.environ[key]
+
+        return True
+
+    @classmethod
+    def _get_from_ssm(cls, key):
+        &#34;&#34;&#34;Gets a value from SSM.
+
+        Args:
+            key: The key for the value to get.
+
+        Returns:
+            The key value or None.
+        &#34;&#34;&#34;
+        ssm_key = cls._build_ssm_key(key)
+        result = None
+        client = cls._get_ssm_client()
+        try:
+            get_response = client.get_parameter(Name=ssm_key, WithDecryption=True)
+            result = get_response.get(&#39;Parameter&#39;).get(&#39;Value&#39;)
+        except client.exceptions.ParameterNotFound:
+            logging.exception(&#39;SSM Parameter Not Found: {0}&#39;.format(ssm_key))
+
+        return result
+
+    @classmethod
+    def _set_in_ssm(cls, key, value, type=&#39;SecureString&#39;):
+        &#34;&#34;&#34;Sets a key/value pair in SSM.
+
+        Args:
+            key: The key to set.
+            value: The value to set.
+            type: The SSM parameter type. Defaults to SecureString.
+
+        Returns:
+            True if successful otherwise False.
+        &#34;&#34;&#34;
+        ssm_key = cls._build_ssm_key(key)
+        try:
+            cls._get_ssm_client().put_parameter(Name=ssm_key, Value=value, Type=type, Overwrite=True)
+            return True
+        except Exception as ex:
+            logging.exception(&#39;SSM Error: {0}&#39;.format(ex))
+        return False
+
+    @classmethod
+    def _delete_from_ssm(cls, key):
+        &#34;&#34;&#34;Deletes a key in SSM.
+
+        Args:
+            key: The key to delete.
+
+        Returns:
+            True if successful otherwise False.
+        &#34;&#34;&#34;
+        ssm_key = cls._build_ssm_key(key)
+        try:
+            cls._get_ssm_client().delete_parameter(Name=ssm_key)
+            return True
+        except Exception as ex:
+            logging.exception(&#39;SSM Error: {0}&#39;.format(ex))
+        return False
+
+    @classmethod
+    def _build_ssm_key(cls, key):
+        &#34;&#34;&#34;Builds an SSM key.
+
+        The format is &#34;service_name/service_stage/key&#34;.
+
+        Args:
+            key: The key to build a fully qualified key for.
+
+        Returns:
+            The fully qualified key string.
+        &#34;&#34;&#34;
+        service_name = cls.get(&#39;SERVICE_NAME&#39;, store=cls.Stores.OS).value
+        service_stage = cls.get(&#39;SERVICE_STAGE&#39;, store=cls.Stores.OS).value
+
+        if not service_name:
+            raise ValueError(&#39;Environment variable not set: SERVICE_NAME&#39;)
+
+        if not service_stage:
+            raise ValueError(&#39;Environment variable not set: SERVICE_STAGE&#39;)
+
+        return &#39;/{0}/{1}/{2}&#39;.format(service_name, service_stage, key)
+
+    # Cached instance of the SSM client.
+    _ssm_client = None
+
+    @classmethod
+    def _get_ssm_client(cls):
+        &#34;&#34;&#34;Gets an SSM boto3 client.
+
+        Returns:
+            SSM client or None.
+        &#34;&#34;&#34;
+        try:
+            if not cls._ssm_client:
+                cls._ssm_client = boto3.client(&#39;ssm&#39;)
+            return cls._ssm_client
+        except Exception as ex:
+            logging.exception(&#39;SSM Error: {0}&#39;.format(ex))
+        return None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="sls_tools.param_store.param_store.ParamStore.Stores"><code class="name">var <span class="ident">Stores</span></code></dt>
+<dd>
+<section class="desc"><p>Enum for the available Key/Value stores.</p>
+<p>Supported options are: OS, SSM, AUTO</p>
+<p>"AUTO" is a reserved keyword that can be passed to each method to delegate
+the choice to each individual method.</p></section>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="sls_tools.param_store.param_store.ParamStore.delete"><code class="name flex">
+<span>def <span class="ident">delete</span></span>(<span>key, store=<Stores.AUTO: 'auto'>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Deletes a key/value.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>key</code></strong></dt>
+<dd>The key to delete.</dd>
+<dt><strong><code>store</code></strong></dt>
+<dd>Where to delete from. Defaults to Stores.AUTO.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>True if successfully deleted otherwise False.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@classmethod
+def delete(cls, key, store=Stores.AUTO):
+    &#34;&#34;&#34;Deletes a key/value.
+
+    Args:
+        key: The key to delete.
+        store: Where to delete from. Defaults to Stores.AUTO.
+
+    Returns:
+        True if successfully deleted otherwise False.
+    &#34;&#34;&#34;
+    result = False
+
+    # Delete the value from the local environment.
+    if store in [cls.Stores.OS, cls.Stores.AUTO]:
+        result = cls._delete_from_os(key)
+
+    # Delete the value from SSM.
+    if store in [cls.Stores.SSM, cls.Stores.AUTO]:
+        result = cls._delete_from_ssm(key) is not None
+
+    return result</code></pre>
+</details>
+</dd>
+<dt id="sls_tools.param_store.param_store.ParamStore.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>key, default=None, store=<Stores.AUTO: 'auto'>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets the value for a key.</p>
+<p>Will return the value from the OS if its set otherwise it will try to get the value from SSM.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>key</code></strong></dt>
+<dd>The key for the value to get.</dd>
+<dt><strong><code>default</code></strong></dt>
+<dd>The value to return if the key value is None.</dd>
+<dt><strong><code>store</code></strong></dt>
+<dd>Where to get the value from. Defaults to Stores.AUTO.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>ParamStoreResult</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@classmethod
+def get(cls, key, default=None, store=Stores.AUTO):
+    &#34;&#34;&#34;Gets the value for a key.
+
+    Will return the value from the OS if its set otherwise it will try to get the value from SSM.
+    
+    Args:
+        key: The key for the value to get.
+        default: The value to return if the key value is None.
+        store: Where to get the value from. Defaults to Stores.AUTO.
+
+    Returns:
+        ParamStoreResult
+    &#34;&#34;&#34;
+    # Try to get the value from the local environment.
+    if store in [cls.Stores.OS, cls.Stores.AUTO]:
+        result = cls._get_from_os(key)
+        if result is not None:
+            return ParamStoreResult(key, result)
+
+    # Try to get the value from SSM.
+    if store in [cls.Stores.SSM, cls.Stores.AUTO]:
+        result = cls._get_from_ssm(key)
+        if result is not None:
+            return ParamStoreResult(key, result)
+
+    return ParamStoreResult(key, default)</code></pre>
+</details>
+</dd>
+<dt id="sls_tools.param_store.param_store.ParamStore.set"><code class="name flex">
+<span>def <span class="ident">set</span></span>(<span>key, value, store=<Stores.SSM: 'ssm'>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Sets a key/value pair.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>key</code></strong></dt>
+<dd>The key to set.</dd>
+<dt><strong><code>value</code></strong></dt>
+<dd>The value to set.</dd>
+<dt><strong><code>store</code></strong></dt>
+<dd>Where to set the value. Defaults to Stores.SSM.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>True if successfully set otherwise False.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@classmethod
+def set(cls, key, value, store=Stores.SSM):
+    &#34;&#34;&#34;Sets a key/value pair.
+
+    Args:
+        key: The key to set.
+        value: The value to set.
+        store: Where to set the value. Defaults to Stores.SSM.
+
+    Returns:
+        True if successfully set otherwise False.
+    &#34;&#34;&#34;
+    result = False
+
+    # Set the value in the local environment.
+    if store in [cls.Stores.OS, cls.Stores.AUTO]:
+        result = cls._set_in_os(key, value)
+
+    # Set the value in SSM.
+    if store in [cls.Stores.SSM, cls.Stores.AUTO]:
+        result = cls._set_in_ssm(key, value) is not None
+
+    return result</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="sls_tools.param_store" href="index.html">sls_tools.param_store</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="sls_tools.param_store.param_store.ParamStore" href="#sls_tools.param_store.param_store.ParamStore">ParamStore</a></code></h4>
+<ul class="">
+<li><code><a title="sls_tools.param_store.param_store.ParamStore.Stores" href="#sls_tools.param_store.param_store.ParamStore.Stores">Stores</a></code></li>
+<li><code><a title="sls_tools.param_store.param_store.ParamStore.delete" href="#sls_tools.param_store.param_store.ParamStore.delete">delete</a></code></li>
+<li><code><a title="sls_tools.param_store.param_store.ParamStore.get" href="#sls_tools.param_store.param_store.ParamStore.get">get</a></code></li>
+<li><code><a title="sls_tools.param_store.param_store.ParamStore.set" href="#sls_tools.param_store.param_store.ParamStore.set">set</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.3</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
