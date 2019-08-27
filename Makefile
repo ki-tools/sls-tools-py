@@ -17,15 +17,17 @@ build: clean docs
 
 .PHONY: clean
 clean:
-	rm -rf build/*
-	rm -rf dist/*
-	rm -rf htmlcov
+	rm -rf ./build/*
+	rm -rf ./dist/*
+	rm -rf ./htmlcov
 
 
 .PHONY: docs
 docs:
-	rm -rf docs/sls_tools
-	pdoc --html --output-dir docs src/sls_tools
+	rm -rf ./docs/*
+	pdoc --html --output-dir ./docs ./src/sls_tools
+	mv ./docs/sls_tools/* ./docs/
+	rmdir ./docs/sls_tools
 
 
 .PHONY: install_local
