@@ -22,4 +22,4 @@ make test
 
 ## Module Documentation
 
-See full module documentation [here](docs/sls_tools/index.html).
+See full module documentation [here](https://ki-tools.github.io/sls-tools-py).
