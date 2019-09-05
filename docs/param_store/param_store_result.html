@@ -28,7 +28,7 @@
     Provides helper methods to transform values.
     &#34;&#34;&#34;
 
-    def __init__(self, key, value):
+    def __init__(self, key, value, store):
         &#34;&#34;&#34;Initializes the class with a key/value pair.
 
         Args:
@@ -37,6 +37,7 @@
         &#34;&#34;&#34;
         self._key = key
         self._value = value
+        self._store = store
 
     @property
     def key(self):
@@ -47,6 +48,11 @@
     def value(self):
         &#34;&#34;&#34;Gets the value.&#34;&#34;&#34;
         return self._value
+
+    @property
+    def store(self):
+        &#34;&#34;&#34;Gets the the key/value store name this instance was retrieved from.&#34;&#34;&#34;
+        return self._store
 
     def to_int(self):
         &#34;&#34;&#34;Parses the value into an integer.
@@ -117,7 +123,7 @@
 <dl>
 <dt id="sls_tools.param_store.param_store_result.ParamStoreResult"><code class="flex name class">
 <span>class <span class="ident">ParamStoreResult</span></span>
-<span>(</span><span>key, value)</span>
+<span>(</span><span>key, value, store)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Encapsulates the value of a key.</p>
@@ -138,7 +144,7 @@
     Provides helper methods to transform values.
     &#34;&#34;&#34;
 
-    def __init__(self, key, value):
+    def __init__(self, key, value, store):
         &#34;&#34;&#34;Initializes the class with a key/value pair.
 
         Args:
@@ -147,6 +153,7 @@
         &#34;&#34;&#34;
         self._key = key
         self._value = value
+        self._store = store
 
     @property
     def key(self):
@@ -157,6 +164,11 @@
     def value(self):
         &#34;&#34;&#34;Gets the value.&#34;&#34;&#34;
         return self._value
+
+    @property
+    def store(self):
+        &#34;&#34;&#34;Gets the the key/value store name this instance was retrieved from.&#34;&#34;&#34;
+        return self._store
 
     def to_int(self):
         &#34;&#34;&#34;Parses the value into an integer.
@@ -226,6 +238,17 @@
 def key(self):
     &#34;&#34;&#34;Gets the key.&#34;&#34;&#34;
     return self._key</code></pre>
+</details>
+</dd>
+<dt id="sls_tools.param_store.param_store_result.ParamStoreResult.store"><code class="name">var <span class="ident">store</span></code></dt>
+<dd>
+<section class="desc"><p>Gets the the key/value store name this instance was retrieved from.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def store(self):
+    &#34;&#34;&#34;Gets the the key/value store name this instance was retrieved from.&#34;&#34;&#34;
+    return self._store</code></pre>
 </details>
 </dd>
 <dt id="sls_tools.param_store.param_store_result.ParamStoreResult.value"><code class="name">var <span class="ident">value</span></code></dt>
@@ -380,6 +403,7 @@ def value(self):
 <h4><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult" href="#sls_tools.param_store.param_store_result.ParamStoreResult">ParamStoreResult</a></code></h4>
 <ul class="two-column">
 <li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.key" href="#sls_tools.param_store.param_store_result.ParamStoreResult.key">key</a></code></li>
+<li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.store" href="#sls_tools.param_store.param_store_result.ParamStoreResult.store">store</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.to_bool" href="#sls_tools.param_store.param_store_result.ParamStoreResult.to_bool">to_bool</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.to_float" href="#sls_tools.param_store.param_store_result.ParamStoreResult.to_float">to_float</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.to_int" href="#sls_tools.param_store.param_store_result.ParamStoreResult.to_int">to_int</a></code></li>

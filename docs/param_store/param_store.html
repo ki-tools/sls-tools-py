@@ -85,7 +85,7 @@ class ParamStore:
 
         # Set the value in SSM.
         if store in [cls.Stores.SSM, cls.Stores.AUTO]:
-            result = cls._set_in_ssm(key, value) is not None
+            result = cls._set_in_ssm(key, value)
 
         return result
 
@@ -107,15 +107,15 @@ class ParamStore:
         if store in [cls.Stores.OS, cls.Stores.AUTO]:
             result = cls._get_from_os(key)
             if result is not None:
-                return ParamStoreResult(key, result)
+                return ParamStoreResult(key, result, cls.Stores.OS)
 
         # Try to get the value from SSM.
         if store in [cls.Stores.SSM, cls.Stores.AUTO]:
             result = cls._get_from_ssm(key)
             if result is not None:
-                return ParamStoreResult(key, result)
+                return ParamStoreResult(key, result, cls.Stores.SSM)
 
-        return ParamStoreResult(key, default)
+        return ParamStoreResult(key, default, None)
 
     @classmethod
     def delete(cls, key, store=Stores.AUTO):
@@ -136,9 +136,23 @@ class ParamStore:
 
         # Delete the value from SSM.
         if store in [cls.Stores.SSM, cls.Stores.AUTO]:
-            result = cls._delete_from_ssm(key) is not None
+            result = cls._delete_from_ssm(key)
 
         return result
+
+    @classmethod
+    def contains(cls, key, store=Stores.AUTO):
+        &#34;&#34;&#34;Gets if a key is present in one of the param stores.
+
+        Args:
+            key: The key to check for.
+            store: Where to look for the key. Defaults to Stores.AUTO.
+
+        Returns:
+            True if the key is contained in the store.
+        &#34;&#34;&#34;
+        result = cls.get(key, default=None, store=store)
+        return result.store is not None and result.value is not None
 
     @classmethod
     def _get_from_os(cls, key):
@@ -189,16 +203,18 @@ class ParamStore:
             key: The key for the value to get.
 
         Returns:
-            The key value or None.
+            The key value or None, or raises
         &#34;&#34;&#34;
-        ssm_key = cls._build_ssm_key(key)
         result = None
+        ssm_key = cls._build_ssm_key(key)
         client = cls._get_ssm_client()
         try:
             get_response = client.get_parameter(Name=ssm_key, WithDecryption=True)
             result = get_response.get(&#39;Parameter&#39;).get(&#39;Value&#39;)
         except client.exceptions.ParameterNotFound:
             logging.exception(&#39;SSM Parameter Not Found: {0}&#39;.format(ssm_key))
+        except Exception as ex:
+            logging.exception(&#39;SSM Error: {0}&#39;.format(ex))
 
         return result
 
@@ -374,7 +390,7 @@ my_var = ParamStore.get('MY_VAR').to_list()
 
         # Set the value in SSM.
         if store in [cls.Stores.SSM, cls.Stores.AUTO]:
-            result = cls._set_in_ssm(key, value) is not None
+            result = cls._set_in_ssm(key, value)
 
         return result
 
@@ -396,15 +412,15 @@ my_var = ParamStore.get('MY_VAR').to_list()
         if store in [cls.Stores.OS, cls.Stores.AUTO]:
             result = cls._get_from_os(key)
             if result is not None:
-                return ParamStoreResult(key, result)
+                return ParamStoreResult(key, result, cls.Stores.OS)
 
         # Try to get the value from SSM.
         if store in [cls.Stores.SSM, cls.Stores.AUTO]:
             result = cls._get_from_ssm(key)
             if result is not None:
-                return ParamStoreResult(key, result)
+                return ParamStoreResult(key, result, cls.Stores.SSM)
 
-        return ParamStoreResult(key, default)
+        return ParamStoreResult(key, default, None)
 
     @classmethod
     def delete(cls, key, store=Stores.AUTO):
@@ -425,9 +441,23 @@ my_var = ParamStore.get('MY_VAR').to_list()
 
         # Delete the value from SSM.
         if store in [cls.Stores.SSM, cls.Stores.AUTO]:
-            result = cls._delete_from_ssm(key) is not None
+            result = cls._delete_from_ssm(key)
 
         return result
+
+    @classmethod
+    def contains(cls, key, store=Stores.AUTO):
+        &#34;&#34;&#34;Gets if a key is present in one of the param stores.
+
+        Args:
+            key: The key to check for.
+            store: Where to look for the key. Defaults to Stores.AUTO.
+
+        Returns:
+            True if the key is contained in the store.
+        &#34;&#34;&#34;
+        result = cls.get(key, default=None, store=store)
+        return result.store is not None and result.value is not None
 
     @classmethod
     def _get_from_os(cls, key):
@@ -478,16 +508,18 @@ my_var = ParamStore.get('MY_VAR').to_list()
             key: The key for the value to get.
 
         Returns:
-            The key value or None.
+            The key value or None, or raises
         &#34;&#34;&#34;
-        ssm_key = cls._build_ssm_key(key)
         result = None
+        ssm_key = cls._build_ssm_key(key)
         client = cls._get_ssm_client()
         try:
             get_response = client.get_parameter(Name=ssm_key, WithDecryption=True)
             result = get_response.get(&#39;Parameter&#39;).get(&#39;Value&#39;)
         except client.exceptions.ParameterNotFound:
             logging.exception(&#39;SSM Parameter Not Found: {0}&#39;.format(ssm_key))
+        except Exception as ex:
+            logging.exception(&#39;SSM Error: {0}&#39;.format(ex))
 
         return result
 
@@ -582,6 +614,37 @@ the choice to each individual method.</p></section>
 </dl>
 <h3>Static methods</h3>
 <dl>
+<dt id="sls_tools.param_store.param_store.ParamStore.contains"><code class="name flex">
+<span>def <span class="ident">contains</span></span>(<span>key, store=<Stores.AUTO: 'auto'>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets if a key is present in one of the param stores.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>key</code></strong></dt>
+<dd>The key to check for.</dd>
+<dt><strong><code>store</code></strong></dt>
+<dd>Where to look for the key. Defaults to Stores.AUTO.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>True if the key is contained in the store.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@classmethod
+def contains(cls, key, store=Stores.AUTO):
+    &#34;&#34;&#34;Gets if a key is present in one of the param stores.
+
+    Args:
+        key: The key to check for.
+        store: Where to look for the key. Defaults to Stores.AUTO.
+
+    Returns:
+        True if the key is contained in the store.
+    &#34;&#34;&#34;
+    result = cls.get(key, default=None, store=store)
+    return result.store is not None and result.value is not None</code></pre>
+</details>
+</dd>
 <dt id="sls_tools.param_store.param_store.ParamStore.delete"><code class="name flex">
 <span>def <span class="ident">delete</span></span>(<span>key, store=<Stores.AUTO: 'auto'>)</span>
 </code></dt>
@@ -617,7 +680,7 @@ def delete(cls, key, store=Stores.AUTO):
 
     # Delete the value from SSM.
     if store in [cls.Stores.SSM, cls.Stores.AUTO]:
-        result = cls._delete_from_ssm(key) is not None
+        result = cls._delete_from_ssm(key)
 
     return result</code></pre>
 </details>
@@ -662,15 +725,15 @@ def get(cls, key, default=None, store=Stores.AUTO):
     if store in [cls.Stores.OS, cls.Stores.AUTO]:
         result = cls._get_from_os(key)
         if result is not None:
-            return ParamStoreResult(key, result)
+            return ParamStoreResult(key, result, cls.Stores.OS)
 
     # Try to get the value from SSM.
     if store in [cls.Stores.SSM, cls.Stores.AUTO]:
         result = cls._get_from_ssm(key)
         if result is not None:
-            return ParamStoreResult(key, result)
+            return ParamStoreResult(key, result, cls.Stores.SSM)
 
-    return ParamStoreResult(key, default)</code></pre>
+    return ParamStoreResult(key, default, None)</code></pre>
 </details>
 </dd>
 <dt id="sls_tools.param_store.param_store.ParamStore.set"><code class="name flex">
@@ -711,7 +774,7 @@ def set(cls, key, value, store=Stores.SSM):
 
     # Set the value in SSM.
     if store in [cls.Stores.SSM, cls.Stores.AUTO]:
-        result = cls._set_in_ssm(key, value) is not None
+        result = cls._set_in_ssm(key, value)
 
     return result</code></pre>
 </details>
@@ -738,6 +801,7 @@ def set(cls, key, value, store=Stores.SSM):
 <h4><code><a title="sls_tools.param_store.param_store.ParamStore" href="#sls_tools.param_store.param_store.ParamStore">ParamStore</a></code></h4>
 <ul class="">
 <li><code><a title="sls_tools.param_store.param_store.ParamStore.Stores" href="#sls_tools.param_store.param_store.ParamStore.Stores">Stores</a></code></li>
+<li><code><a title="sls_tools.param_store.param_store.ParamStore.contains" href="#sls_tools.param_store.param_store.ParamStore.contains">contains</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store.ParamStore.delete" href="#sls_tools.param_store.param_store.ParamStore.delete">delete</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store.ParamStore.get" href="#sls_tools.param_store.param_store.ParamStore.get">get</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store.ParamStore.set" href="#sls_tools.param_store.param_store.ParamStore.set">set</a></code></li>
