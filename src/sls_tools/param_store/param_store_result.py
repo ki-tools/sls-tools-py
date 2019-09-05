@@ -4,7 +4,7 @@ class ParamStoreResult:
     Provides helper methods to transform values.
     """
 
-    def __init__(self, key, value):
+    def __init__(self, key, value, store):
         """Initializes the class with a key/value pair.
 
         Args:
@@ -13,6 +13,7 @@ class ParamStoreResult:
         """
         self._key = key
         self._value = value
+        self._store = store
 
     @property
     def key(self):
@@ -23,6 +24,11 @@ class ParamStoreResult:
     def value(self):
         """Gets the value."""
         return self._value
+
+    @property
+    def store(self):
+        """Gets the the key/value store name this instance was retrieved from."""
+        return self._store
 
     def to_int(self):
         """Parses the value into an integer.

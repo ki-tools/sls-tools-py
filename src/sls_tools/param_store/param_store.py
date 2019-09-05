@@ -61,7 +61,7 @@ class ParamStore:
 
         # Set the value in SSM.
         if store in [cls.Stores.SSM, cls.Stores.AUTO]:
-            result = cls._set_in_ssm(key, value) is not None
+            result = cls._set_in_ssm(key, value)
 
         return result
 
@@ -83,15 +83,15 @@ class ParamStore:
         if store in [cls.Stores.OS, cls.Stores.AUTO]:
             result = cls._get_from_os(key)
             if result is not None:
-                return ParamStoreResult(key, result)
+                return ParamStoreResult(key, result, cls.Stores.OS)
 
         # Try to get the value from SSM.
         if store in [cls.Stores.SSM, cls.Stores.AUTO]:
             result = cls._get_from_ssm(key)
             if result is not None:
-                return ParamStoreResult(key, result)
+                return ParamStoreResult(key, result, cls.Stores.SSM)
 
-        return ParamStoreResult(key, default)
+        return ParamStoreResult(key, default, None)
 
     @classmethod
     def delete(cls, key, store=Stores.AUTO):
@@ -112,9 +112,23 @@ class ParamStore:
 
         # Delete the value from SSM.
         if store in [cls.Stores.SSM, cls.Stores.AUTO]:
-            result = cls._delete_from_ssm(key) is not None
+            result = cls._delete_from_ssm(key)
 
         return result
+
+    @classmethod
+    def contains(cls, key, store=Stores.AUTO):
+        """Gets if a key is present in one of the param stores.
+
+        Args:
+            key: The key to check for.
+            store: Where to look for the key. Defaults to Stores.AUTO.
+
+        Returns:
+            True if the key is contained in the store.
+        """
+        result = cls.get(key, default=None, store=store)
+        return result.store is not None and result.value is not None
 
     @classmethod
     def _get_from_os(cls, key):
@@ -165,16 +179,18 @@ class ParamStore:
             key: The key for the value to get.
 
         Returns:
-            The key value or None.
+            The key value or None, or raises
         """
-        ssm_key = cls._build_ssm_key(key)
         result = None
+        ssm_key = cls._build_ssm_key(key)
         client = cls._get_ssm_client()
         try:
             get_response = client.get_parameter(Name=ssm_key, WithDecryption=True)
             result = get_response.get('Parameter').get('Value')
         except client.exceptions.ParameterNotFound:
             logging.exception('SSM Parameter Not Found: {0}'.format(ssm_key))
+        except Exception as ex:
+            logging.exception('SSM Error: {0}'.format(ex))
 
         return result
 
