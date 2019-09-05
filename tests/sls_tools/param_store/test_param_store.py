@@ -1,6 +1,7 @@
 import pytest
 import os
 import uuid
+import logging
 from moto import mock_ssm
 from src.sls_tools.param_store import ParamStore
 
@@ -22,6 +23,7 @@ def reset_key_value(key):
     Delete the test key before each test method is executed.
     """
     ParamStore.delete(key, store=ParamStore.Stores.AUTO)
+    assert ParamStore.contains(key) is False
     assert key not in os.environ.keys()
     assert ParamStore.get(key).value is None
     assert ParamStore.get(key, store=ParamStore.Stores.OS).value is None
@@ -75,6 +77,96 @@ def test_it_sets_and_gets_in_ssm(key, value):
     assert ParamStore.get(key).value == value
     assert ParamStore.get(key, store=ParamStore.Stores.OS).value is None
     assert ParamStore.get(key, store=ParamStore.Stores.SSM).value == value
+
+
+@mock_ssm
+def test_it_contains_a_key(key, value):
+    assert ParamStore.contains(key) is False
+
+    ParamStore.set(key, value, store=ParamStore.Stores.OS)
+    assert ParamStore.contains(key) is True
+    assert ParamStore.contains(key, store=ParamStore.Stores.OS) is True
+    assert ParamStore.contains(key, store=ParamStore.Stores.AUTO) is True
+    assert ParamStore.contains(key, store=ParamStore.Stores.SSM) is False
+
+    ParamStore.delete(key)
+    assert ParamStore.contains(key) is False
+
+    ParamStore.set(key, value, store=ParamStore.Stores.SSM)
+    assert ParamStore.contains(key) is True
+    assert ParamStore.contains(key, store=ParamStore.Stores.OS) is False
+    assert ParamStore.contains(key, store=ParamStore.Stores.AUTO) is True
+    assert ParamStore.contains(key, store=ParamStore.Stores.SSM) is True
+
+    ParamStore.delete(key)
+    assert ParamStore.contains(key) is False
+
+    ParamStore.set(key, value, store=ParamStore.Stores.AUTO)
+    assert ParamStore.contains(key) is True
+    assert ParamStore.contains(key, store=ParamStore.Stores.OS) is True
+    assert ParamStore.contains(key, store=ParamStore.Stores.AUTO) is True
+    assert ParamStore.contains(key, store=ParamStore.Stores.SSM) is True
+
+
+@mock_ssm
+def test_it_does_not_raise_when_getting_an_unset_ssm_key(key):
+    default_value = str(uuid.uuid4())
+    assert ParamStore.get(key, default=default_value).value == default_value
+
+
+@mock_ssm
+def test_it_logs_ssm_parameter_missing_errors_when_getting(key, mocker):
+    with mocker.mock_module.patch.object(logging, 'exception') as log_mock:
+        default_value = str(uuid.uuid4())
+        assert ParamStore.get(key, default=default_value).value == default_value
+        assert log_mock.called is True
+        assert 'SSM Parameter Not Found:' in log_mock.call_args[0][0]
+
+
+@mock_ssm
+def test_it_does_not_raise_general_ssm_errors_when_getting(key, mocker):
+    with mocker.mock_module.patch.object(ParamStore._get_ssm_client(), 'get_parameter') as mock:
+        mock.side_effect = Exception('Random Error...')
+        default_value = str(uuid.uuid4())
+        assert ParamStore.get(key, default=default_value).value == default_value
+        assert mock.called is True
+
+
+@mock_ssm
+def test_it_logs_general_ssm_get_errors(key, mocker):
+    with mocker.mock_module.patch.object(logging, 'exception') as log_mock:
+        with mocker.mock_module.patch.object(ParamStore._get_ssm_client(), 'get_parameter') as mock:
+            mock.side_effect = Exception('Random Error...')
+            default_value = str(uuid.uuid4())
+            assert ParamStore.get(key, default=default_value).value == default_value
+            assert mock.called is True
+
+        assert log_mock.called is True
+        assert log_mock.call_args[0][0] == 'SSM Error: Random Error...'
+
+
+@mock_ssm
+def test_it_logs_general_ssm_set_errors(key, mocker):
+    with mocker.mock_module.patch.object(logging, 'exception') as log_mock:
+        with mocker.mock_module.patch.object(ParamStore._get_ssm_client(), 'put_parameter') as mock:
+            mock.side_effect = Exception('Random Error...')
+            assert ParamStore.set(key, value, store=ParamStore.Stores.SSM) is False
+            assert mock.called is True
+
+        assert log_mock.called is True
+        assert log_mock.call_args[0][0] == 'SSM Error: Random Error...'
+
+
+@mock_ssm
+def test_it_logs_general_ssm_delete_errors(key, mocker):
+    with mocker.mock_module.patch.object(logging, 'exception') as log_mock:
+        with mocker.mock_module.patch.object(ParamStore._get_ssm_client(), 'delete_parameter') as mock:
+            mock.side_effect = Exception('Random Error...')
+            assert ParamStore.delete(key, store=ParamStore.Stores.SSM) is False
+            assert mock.called is True
+
+        assert log_mock.called is True
+        assert log_mock.call_args[0][0] == 'SSM Error: Random Error...'
 
 
 @mock_ssm
