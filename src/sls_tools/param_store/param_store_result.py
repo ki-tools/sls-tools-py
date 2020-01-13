@@ -1,3 +1,6 @@
+import json
+
+
 class ParamStoreResult:
     """Encapsulates the value of a key.
 
@@ -86,3 +89,17 @@ class ParamStoreResult:
             values = self.value.split(delimiter)
             return [v.strip() for v in values if v and v.strip()]
         return []
+
+    def to_json(self):
+        """Parses the value into a Python object from a JSON string.
+
+        A value of None or an empty string will not be parsed and will return None.
+
+        Returns:
+            Python object or None.
+        """
+        if self.value is None or (isinstance(self.value, str) and len(self.value.strip()) == 0):
+            return None
+        else:
+            return json.loads(self.value)
+

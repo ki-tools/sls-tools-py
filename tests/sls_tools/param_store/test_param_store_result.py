@@ -1,5 +1,6 @@
 import pytest
 import uuid
+import json
 from src.sls_tools.param_store import ParamStore, ParamStoreResult
 
 
@@ -84,3 +85,23 @@ def test_it_converts_to_list(key):
 
 def test_it_uses_a_custom_delimiter_to_list():
     assert ParamStoreResult(key, 'a|b|c', None).to_list(delimiter='|') == ['a', 'b', 'c']
+
+
+def test_it_converts_to_json(key):
+    assert ParamStoreResult(key, '{}', None).to_json() == {}
+    assert ParamStoreResult(key, '{"one": 1, "two": { "three": "3" }}', None).to_json() == {"one": 1,
+                                                                                            "two": {"three": "3"}}
+    assert ParamStoreResult(key, '[]', None).to_json() == []
+    assert ParamStoreResult(key, '[{"one": "one"}]', None).to_json() == [{"one": "one"}]
+
+
+def test_it_returns_none_for_none_or_empty_strings(key):
+    assert ParamStoreResult(key, None, None).to_json() is None
+    assert ParamStoreResult(key, '', None).to_json() is None
+    assert ParamStoreResult(key, '  ', None).to_json() is None
+
+
+def test_it_errors_when_converting_invalid_json_strings(key):
+    for invalid_json in ['{', '{{}', 'asdf']:
+        with pytest.raises(json.JSONDecodeError):
+            ParamStoreResult(key, invalid_json, None).to_json()
