@@ -22,7 +22,10 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">class ParamStoreResult:
+<pre><code class="python">import json
+
+
+class ParamStoreResult:
     &#34;&#34;&#34;Encapsulates the value of a key.
 
     Provides helper methods to transform values.
@@ -109,7 +112,20 @@
         if self.value:
             values = self.value.split(delimiter)
             return [v.strip() for v in values if v and v.strip()]
-        return []</code></pre>
+        return []
+
+    def to_json(self):
+        &#34;&#34;&#34;Parses the value into a Python object from a JSON string.
+
+        A value of None or an empty string will not be parsed and will return None.
+
+        Returns:
+            Python object or None.
+        &#34;&#34;&#34;
+        if self.value is None or (isinstance(self.value, str) and len(self.value.strip()) == 0):
+            return None
+        else:
+            return json.loads(self.value)</code></pre>
 </details>
 </section>
 <section>
@@ -225,7 +241,20 @@
         if self.value:
             values = self.value.split(delimiter)
             return [v.strip() for v in values if v and v.strip()]
-        return []</code></pre>
+        return []
+
+    def to_json(self):
+        &#34;&#34;&#34;Parses the value into a Python object from a JSON string.
+
+        A value of None or an empty string will not be parsed and will return None.
+
+        Returns:
+            Python object or None.
+        &#34;&#34;&#34;
+        if self.value is None or (isinstance(self.value, str) and len(self.value.strip()) == 0):
+            return None
+        else:
+            return json.loads(self.value)</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -352,6 +381,30 @@ def value(self):
         return int(self.value)</code></pre>
 </details>
 </dd>
+<dt id="sls_tools.param_store.param_store_result.ParamStoreResult.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Parses the value into a Python object from a JSON string.</p>
+<p>A value of None or an empty string will not be parsed and will return None.</p>
+<h2 id="returns">Returns</h2>
+<p>Python object or None.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def to_json(self):
+    &#34;&#34;&#34;Parses the value into a Python object from a JSON string.
+
+    A value of None or an empty string will not be parsed and will return None.
+
+    Returns:
+        Python object or None.
+    &#34;&#34;&#34;
+    if self.value is None or (isinstance(self.value, str) and len(self.value.strip()) == 0):
+        return None
+    else:
+        return json.loads(self.value)</code></pre>
+</details>
+</dd>
 <dt id="sls_tools.param_store.param_store_result.ParamStoreResult.to_list"><code class="name flex">
 <span>def <span class="ident">to_list</span></span>(<span>self, delimiter=',')</span>
 </code></dt>
@@ -407,6 +460,7 @@ def value(self):
 <li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.to_bool" href="#sls_tools.param_store.param_store_result.ParamStoreResult.to_bool">to_bool</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.to_float" href="#sls_tools.param_store.param_store_result.ParamStoreResult.to_float">to_float</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.to_int" href="#sls_tools.param_store.param_store_result.ParamStoreResult.to_int">to_int</a></code></li>
+<li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.to_json" href="#sls_tools.param_store.param_store_result.ParamStoreResult.to_json">to_json</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.to_list" href="#sls_tools.param_store.param_store_result.ParamStoreResult.to_list">to_list</a></code></li>
 <li><code><a title="sls_tools.param_store.param_store_result.ParamStoreResult.value" href="#sls_tools.param_store.param_store_result.ParamStoreResult.value">value</a></code></li>
 </ul>
