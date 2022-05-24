@@ -20,5 +20,6 @@ var/
 .idea
 .venv
 .vscode
-.coverage
+.coverage*
+.tox
 htmlcov

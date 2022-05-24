@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="sls-tools",
-    version="0.0.3",
+    version="0.0.4",
     author="Patrick Stout",
     author_email="pstout@prevagroup.com",
     license="Apache2",
@@ -18,6 +18,10 @@ setuptools.setup(
     classifiers=(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ),

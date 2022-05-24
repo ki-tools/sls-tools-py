@@ -222,11 +222,13 @@ class ParamStore:
             key: The key to delete.
 
         Returns:
-            True if successful otherwise False.
+            True if successful or the key does not exist otherwise False.
         """
         ssm_key = cls._build_ssm_key(key)
         try:
             cls._get_ssm_client().delete_parameter(Name=ssm_key)
+            return True
+        except cls._get_ssm_client().exceptions.ParameterNotFound as ex:
             return True
         except Exception as ex:
             logging.exception('SSM Error: {0}'.format(ex))
